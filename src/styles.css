@@ -225,33 +225,6 @@ table.grid{width:100%;border-collapse:collapse;font-size:13px}
 .catico{width:32px;height:32px;border-radius:6px;background:var(--tealLt);border:1px solid #bfe3ea;
   display:grid;place-items:center;flex-shrink:0}
 
-/* ---------- anexos (abrir chamado) ---------- */
-.filebtn{display:inline-flex;align-items:center;gap:7px;cursor:pointer;background:var(--tealLt);color:var(--tealDk);
-  border:1px dashed #9fd3df;border-radius:5px;padding:9px 13px;font-size:13px;font-weight:600}
-.filebtn:hover{background:#d7eef2}
-.filebtn.off{cursor:not-allowed;opacity:.6;background:var(--panel);color:var(--muted);border-color:var(--line)}
-.anexos{display:flex;flex-direction:column;gap:6px;margin-top:9px}
-.anexo{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:7px 10px;font-size:13px}
-.anexo-x{background:transparent;border:none;cursor:pointer;color:var(--dim);display:flex;padding:2px;border-radius:4px}
-.anexo-x:hover{color:var(--red);background:#fff}
-
-/* ---------- botões de ação (gestão) ---------- */
-.ibtn{display:inline-flex;align-items:center;justify-content:center;gap:4px;background:var(--card);border:1px solid var(--line);
-  color:var(--muted);border-radius:5px;padding:6px 8px;font-size:12.5px;font-weight:600;cursor:pointer}
-.ibtn:hover{border-color:var(--teal);color:var(--teal)}
-.ibtn-del:hover{border-color:var(--red);color:var(--red)}
-
-/* ---------- seletor de perfil + campo com ícone (login) ---------- */
-.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:3px;gap:3px}
-.seg button{flex:1;background:transparent;border:none;cursor:pointer;padding:7px 6px;border-radius:4px;
-  font-size:12.5px;font-weight:600;color:var(--muted)}
-.seg button:hover{color:var(--navy)}
-.seg button.on{background:var(--teal);color:#fff}
-.inpicon{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:5px;padding:0 10px}
-.inpicon:focus-within{border-color:var(--teal)}
-.inpicon .inp{border:none;padding:9px 0;background:transparent}
-.inpicon .inp:focus{border:none}
-
 /* ---------- login ---------- */
 .login{min-height:100vh;display:grid;place-items:center;padding:20px;
   background:linear-gradient(180deg,#163a52 0%,#163a52 180px,var(--bg) 180px,var(--bg) 100%)}
