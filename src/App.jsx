@@ -11,7 +11,6 @@ import { Admin } from "./screens/Admin.jsx";
 import { SCREEN_RF } from "./data/requisitos.js";
 import { SEED, sys, msg } from "./data/chamados.js";
 import { catById } from "./data/categorias.js";
-import { userById } from "./data/usuarios.js";
 import { derivePrio } from "./lib/sla.js";
 
 // Trilha de navegação (breadcrumb) por tela.
@@ -61,11 +60,10 @@ export default function App() {
   const addMsg = (id, txt) => { if (!txt.trim()) return; patch(id, (t) => { t.interacoes.push(msg(user.id, txt.trim())); return t; }); };
   const setStatus = (id, ns) => { patch(id, (t) => { t.interacoes.push(sys(`Status alterado para ${ns}`)); if (ns === "Resolvido") t.resolvidoEm = new Date(); if (ns === "Fechado") t.fechadoEm = new Date(); t.status = ns; return t; }); flash(`Status → ${ns}`); };
   const assume = (id) => { patch(id, (t) => { t.atendenteId = user.id; t.interacoes.push(sys(`Chamado assumido por ${user.nome}`)); if (t.status === "Aberto") t.status = "Em atendimento"; return t; }); flash("Chamado assumido"); };
-  const reatribuir = (id, aid) => { patch(id, (t) => { t.atendenteId = aid; if (t.status === "Aberto") t.status = "Em atendimento"; t.interacoes.push(sys(`Chamado atribuído a ${userById(aid)?.nome || "atendente"}`)); return t; }); flash("Chamado atribuído"); };
   const avaliar = (id, nota, com) => { patch(id, (t) => { t.avaliacao = { nota, comentario: com, data: new Date() }; t.interacoes.push(sys(`Atendimento avaliado com ${nota} estrela(s)`)); return t; }); flash("Avaliação registrada"); };
   const criar = (d) => {
     const cat = catById(d.catId);
-    const t = { id: "t" + Date.now(), protocolo: "MPD-" + seq, titulo: d.titulo.trim(), descricao: d.descricao.trim(), catId: d.catId, prioridade: derivePrio(cat, d.impacto), status: "Aberto", impacto: d.impacto, anexos: d.anexos || [], solicitanteId: user.id, atendenteId: null, criadoEm: new Date(), interacoes: [sys("Chamado aberto")] };
+    const t = { id: "t" + Date.now(), protocolo: "MPD-" + seq, titulo: d.titulo.trim(), descricao: d.descricao.trim(), catId: d.catId, prioridade: derivePrio(cat, d.impacto), status: "Aberto", impacto: d.impacto, solicitanteId: user.id, atendenteId: null, criadoEm: new Date(), interacoes: [sys("Chamado aberto")] };
     setSeq((s) => s + 1); setTickets((ts) => [t, ...ts]); flash("Chamado aberto: " + t.protocolo); go("detalhe", t.id);
   };
 
@@ -95,7 +93,7 @@ export default function App() {
           {view === "painel" && <Dashboard user={user} tickets={visible} isStaff={isStaff} go={go} />}
           {view === "fila" && <TicketList user={user} tickets={visible} isStaff={isStaff} go={go} />}
           {view === "abrir" && <NewTicket onCreate={criar} onCancel={() => go("fila")} />}
-          {view === "detalhe" && current && <TicketDetail t={current} user={user} isStaff={isStaff} go={go} addMsg={addMsg} setStatus={setStatus} assume={assume} reatribuir={reatribuir} avaliar={avaliar} />}
+          {view === "detalhe" && current && <TicketDetail t={current} user={user} isStaff={isStaff} go={go} addMsg={addMsg} setStatus={setStatus} assume={assume} avaliar={avaliar} />}
           {view === "base" && <Knowledge />}
           {view === "relatorios" && <Reports tickets={tickets} />}
           {view === "gestao" && <Admin />}
