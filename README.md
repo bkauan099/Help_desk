@@ -7,7 +7,7 @@ Protótipo navegável do **Help Desk para Telemedicina Hospitalar**, feito em
 🔗 **Demo publicada:** «cole aqui o link do artefato / GitHub Pages»
 📄 **PRD2:** [`docs/PRD2.md`](docs/PRD2.md) · **Checklist 7.1:** [`docs/CHECKLIST-7.1.md`](docs/CHECKLIST-7.1.md)
 
-## Como rodar
+## Como rodar o codigo
 
 ```bash
 npm install
