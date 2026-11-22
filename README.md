@@ -1,26 +1,100 @@
-# MP Desk — Protótipo
+# MP Desk — Sprint 2
 
-Protótipo navegável do **Help Desk para Telemedicina Hospitalar**, feito em
-**React + Vite**. São **8 telas** navegáveis por links, cada uma indicando os
+Versão (Sprint 20 funcional do sistema **Help Desk para Telemedicina Hospitalar**, São **8 telas** funcionais, cada uma indicando os
 **requisitos funcionais (RF)** que atende — ligação direta com o PRD.
 
-🔗 **Demo publicada:** «cole aqui o link do artefato / GitHub Pages»
-📄 **PRD2:** [`docs/PRD2.md`](docs/PRD2.md) · **Checklist 7.1:** [`docs/CHECKLIST-7.1.md`](docs/CHECKLIST-7.1.md)
 
-## Como rodar o codigo
+---
+
+## Tecnologias Utilizadas
+
+* **Front-end:** React, Vite
+* **Back-end:** Node.js, Express, WebSocket, autenticação via JWT e upload de arquivos
+* **Banco de Dados:** PostgreSQL (modelo relacional com 6 tabelas, scripts de *migration* e *seed*)
+* **Infraestrutura e Containerização:** Docker e Docker Compose
+
+---
+
+## Principais Funcionalidades a Disposição Atualmente - Sprint 2 
+
+* **Autenticação e Controle de Acesso (JWT):** Login seguro com perfis distintos (**Solicitante**, **Atendente** e **Administrador**).
+* **Abertura de Chamados e Anexos:** Geração automática de protocolo único (`MPD-XXXX`) com suporte ao envio de imagens e documentos PDF.
+* **Priorização e SLA Automático:** Cálculo dinâmico de criticidade e prazo de atendimento com base na categoria e no impacto clínico imediato na teleconsulta.
+* **Fila de Atendimento e Atribuição:** Listagem com filtros por status, contadores em tempo real e transferência de chamados entre atendentes.
+* **Chat em Tempo Real (WebSocket):** Troca instantânea de mensagens dentro do histórico do chamado sem necessidade de recarregar a página.
+* **Base de Conhecimento (FAQ):** Consulta e busca de artigos de autoajuda antes ou durante a abertura de chamados.
+* **Avaliação e Painel Gerencial:** Avaliação do atendimento concluído (1 a 5 estrelas) e dashboard com métricas de volume, cumprimento de SLA e satisfação.
+
+---
+
+## Pré-requisitos
+
+Antes de começar, certifique-se de ter instalado em sua máquina:
+
+* [Git](https://git-scm.com/)
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (ou Docker Engine + Docker Compose)
+* [Node.js](https://nodejs.org/) (versão 18 ou superior) e `npm`
+
+---
+
+## Como Rodar o Projeto Localmente
+
+### 1. Clonar o repositório
 
 ```bash
-npm install
-npm run dev      # abre em http://localhost:5173
+git clone https://github.com/bkauan099/help_desk.git
+cd help_desk
 ```
 
-Build de produção: `npm run build` (sai em `dist/`) · pré-visualizar: `npm run preview`.
+### 2. Configurar as variáveis de ambiente
 
-No login, escolha um dos três perfis (Solicitante, Atendente, Administrador) —
-cada um enxerga o sistema de forma diferente.
+Os arquivos `.env` não são versionados por segurança. Crie-os a partir dos arquivos de exemplo na **raiz do projeto** e na pasta **`web/`**:
 
-> Observação: é um protótipo de front-end. Os dados são de demonstração e vivem
-> na sessão do navegador (recarregar reinicia). Não há back-end nesta entrega.
+* **No Linux / macOS / Git Bash:**
+  ```bash
+  cp .env.example .env
+  cp web/.env.example web/.env
+  ```
+
+* **No Windows (PowerShell):**
+  ```powershell
+  Copy-Item .env.example .env
+  Copy-Item web\.env.example web\.env
+  ```
+
+*(Caso utilize o VS Code, você também pode duplicar cada `.env.example` pelo explorador de arquivos e renomeá-los para `.env`.)*
+
+### 3. Subir o Back-end e o Banco de Dados (Docker)
+
+1. Certifique-se de que o **Docker Desktop** esteja aberto e em execução.
+2. Na **raiz do projeto (`help_desk/`)**, execute:
+   ```bash
+   docker compose up --build
+   ```
+3. Aguarde até que o container do banco de dados inicialize e o log confirme que a API Express está rodando. **Mantenha este terminal aberto.**
+
+### 4. Subir o Front-end (React + Vite)
+
+1. Abra um **segundo terminal** na raiz do projeto.
+2. Acesse a pasta `web/`, instale as dependências e inicie o servidor de desenvolvimento:
+   ```bash
+   cd web
+   npm install
+   npm run dev
+   ```
+3. Acesse no navegador o endereço exibido no terminal (por padrão, `http://localhost:5173`).
+
+---
+
+## Como Encerrar a Execução
+
+* Para parar os servidores, pressione **`Ctrl + C`** nos dois terminais.
+* Para derrubar e remover os containers do Docker, execute na raiz do projeto:
+  ```bash
+  docker compose down
+  ```
+
+---
 
 ## As 8 telas e os RFs que atendem
 
