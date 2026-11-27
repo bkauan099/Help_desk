@@ -1,17 +1,19 @@
 import Icon from "./Icon.jsx";
 import { Avatar } from "./Badge.jsx";
+import Notifications from "./Notifications.jsx";
 
+// O dashboard de indicadores (Relatórios) é exclusivo do administrador (RF12).
 const ITENS = [
   { k: "painel", rot: "Painel", ic: "home" },
   { k: "chamados", rot: "Chamados", ic: "ticket" },
   { k: "base", rot: "Base de conhecimento", ic: "book" },
-  { k: "relatorios", rot: "Relatórios", ic: "chart" },
+  { k: "relatorios", rot: "Relatórios", ic: "chart", perfis: ["admin"] },
   { k: "gestao", rot: "Gestão", ic: "users", perfis: ["admin"] },
 ];
 
 const PERFIL_ROT = { solicitante: "Solicitante", atendente: "Atendente", admin: "Administrador" };
 
-export default function TopNav({ user, view, go, sair }) {
+export default function TopNav({ user, view, go, sair, notifs, onAbrirNotif, onLerTodas }) {
   return (
     <header className="top">
       <div className="brand"><span className="dot">MP</span> MP Desk</div>
@@ -23,6 +25,7 @@ export default function TopNav({ user, view, go, sair }) {
         ))}
       </nav>
       <div className="me">
+        <Notifications notifs={notifs} onAbrir={onAbrirNotif} onLerTodas={onLerTodas} />
         <div style={{ textAlign: "right" }}>
           <strong style={{ fontSize: 13 }}>{user.nome}</strong>
           <small>{PERFIL_ROT[user.perfil] || user.perfil}</small>
