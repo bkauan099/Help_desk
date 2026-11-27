@@ -1,8 +1,7 @@
 {
-  "name": "mpdesk-prototipo",
+  "name": "mpdesk-web",
   "private": true,
-  "version": "2.0.0",
-  "description": "MP Desk — Protótipo navegável do Help Desk para Telemedicina Hospitalar",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

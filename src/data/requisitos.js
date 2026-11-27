@@ -1,30 +1,20 @@
-// Requisitos funcionais e a ligação com o PRD (cada tela indica os RFs que atende).
-// IMPORTANTE: numeração alinhada ao PRD2. Ajuste aqui se o PRD de vocês usar outra.
-export const RFS = {
-  RF01: "Autenticação e cadastro de usuários",
-  RF02: "Abertura de chamado",
-  RF03: "Categorização e priorização (SLA)",
-  RF04: "Atribuição a atendente",
-  RF05: "Acompanhamento de status",
-  RF06: "Comunicação no chamado",
-  RF07: "Avaliação do atendimento",
-  RF08: "Base de conhecimento (FAQ)",
+export const RF = {
+  RF01: "Login e controle de acesso por perfil",
+  RF02: "Cadastro e gestão de usuários",
+  RF03: "Abertura de chamado (com anexos)",
+  RF04: "Cálculo automático de prioridade e SLA",
+  RF05: "Fila de atendimento e atribuição de técnico",
+  RF06: "Histórico e mudança de status",
+  RF07: "Troca de mensagens em tempo real",
+  RF09: "Avaliação do atendimento",
+  RF10: "Base de conhecimento",
+  RF11: "Busca / FAQ",
+  RF12: "Relatórios e indicadores",
+  RF13: "Gestão de categorias",
 };
-
-// Telas do protótipo -> RFs que cada uma atende.
-// Uma tela sem RF (ex.: relatórios) é apoio de gestão (RNF), não requisito essencial.
 export const SCREEN_RF = {
-  login: ["RF01"],
-  painel: ["RF05"],
-  fila: ["RF05"],
-  abrir: ["RF02", "RF03"],
-  detalhe: ["RF04", "RF05", "RF06", "RF07"],
-  base: ["RF08"],
-  relatorios: [],
-  gestao: ["RF01", "RF03"],
+  login: ["RF01"], painel: ["RF05", "RF12"], chamados: ["RF05", "RF06"],
+  novo: ["RF03", "RF04"], detalhe: ["RF06", "RF07", "RF09"],
+  base: ["RF10", "RF11"], relatorios: ["RF12"], gestao: ["RF02", "RF13"],
 };
-
-export const TELA_NOME = {
-  login: "Login", painel: "Painel", fila: "Fila de chamados", abrir: "Abrir chamado",
-  detalhe: "Detalhe do chamado", base: "Base de conhecimento", relatorios: "Relatórios de SLA", gestao: "Gestão",
-};
+export const selo = (tela) => (SCREEN_RF[tela] || []).map((k) => `${k} · ${RF[k]}`);
