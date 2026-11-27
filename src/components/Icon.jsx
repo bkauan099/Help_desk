@@ -17,6 +17,15 @@ const P = {
   star: "M12 2l3 7 7 .5-5.5 4.5 2 7L12 17l-6.5 4 2-7L2 9.5 9 9z",
   search: "M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.3-4.3",
   plus: "M12 5v14M5 12h14",
+  bell: "M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0",
+  undo: "M3 7v6h6M3.5 13a9 9 0 102.1-9.4L3 7",
+  inbox: "M3 12h5l2 3h4l2-3h5M3 12l3-7h12l3 7v7H3z",
+  activity: "M22 12h-4l-3 9L9 3l-3 9H2",
+  alert: "M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z",
+  check: "M20 6L9 17l-5-5",
+  clock: "M12 22a10 10 0 100-20 10 10 0 000 20zM12 7v5l3 2",
+  x: "M18 6 6 18M6 6l12 12",
+  timer: "M12 22a8 8 0 100-16 8 8 0 000 16zM12 14V9M9 2h6",
 };
 export default function Icon({ name, size = 18, className = "" }) {
   return (
