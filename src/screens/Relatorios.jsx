@@ -1,8 +1,10 @@
-import { slaInfo } from "../lib/format";
+import { useState, useEffect } from "react";
+import { api } from "../services/api";
 import { selo } from "../data/requisitos";
 
 const COR_PRIO = { "Crítica": "#e8622a", "Alta": "#d98a04", "Média": "#1498b4", "Baixa": "#94a3b8" };
-const COR_ST = { "Aberto": "#2563a8", "Em atendimento": "#1c7a4e", "Aguardando solicitante": "#8a6400", "Resolvido": "#1f9d57", "Fechado": "#64748b" };
+const COR_ST = { "Aberto": "#2563a8", "Em atendimento": "#1c7a4e", "Aguardando": "#8a6400", "Resolvido": "#1f9d57", "Fechado": "#64748b" };
+const PERIODOS = [["7", "7 dias"], ["30", "30 dias"], ["90", "90 dias"], ["", "Tudo"]];
 
 function Barras({ titulo, dados, cores }) {
   const total = dados.reduce((s, d) => s + d.v, 0) || 1;
@@ -10,6 +12,7 @@ function Barras({ titulo, dados, cores }) {
     <div className="card pad">
       <strong style={{ color: "#163a52" }}>{titulo}</strong>
       <div style={{ display: "grid", gap: 11, marginTop: 14 }}>
+        {dados.length === 0 && <span style={{ color: "#94a3b8", fontSize: 13 }}>Sem dados no período.</span>}
         {dados.map((d) => (
           <div key={d.k}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 4 }}>
@@ -23,29 +26,46 @@ function Barras({ titulo, dados, cores }) {
   );
 }
 
-export default function Relatorios({ tickets }) {
-  const porStatus = ["Aberto", "Em atendimento", "Aguardando solicitante", "Resolvido", "Fechado"]
-    .map((k) => ({ k, v: tickets.filter((t) => t.status === k).length }));
+// RF12 — dashboard de indicadores (exclusivo do administrador). Lê agregações
+// do servidor, com filtro por período e tempos médios de resposta/resolução.
+export default function Relatorios() {
+  const [dias, setDias] = useState("30");
+  const [st, setSt] = useState(null);
+  const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    api.stats(dias).then(setSt).catch((e) => setErro(e.message));
+  }, [dias]);
+
+  if (erro) return <div className="empty">{erro}</div>;
+  if (!st) return <div className="loading">Carregando indicadores…</div>;
+
+  const porStatus = ["Aberto", "Em atendimento", "Aguardando", "Resolvido", "Fechado"]
+    .map((k) => ({ k, v: (st.porStatus.find((x) => x.status === k) || {}).total || 0 }));
   const porPrio = ["Crítica", "Alta", "Média", "Baixa"]
-    .map((k) => ({ k, v: tickets.filter((t) => t.prioridade === k).length }));
+    .map((k) => ({ k, v: (st.porPrioridade.find((x) => x.prioridade === k) || {}).total || 0 }));
+  const porCat = st.porCategoria.map((c) => ({ k: c.categoria, v: c.total }));
 
-  const ativos = tickets.filter((t) => !["Resolvido", "Fechado"].includes(t.status));
-  const estourados = ativos.filter((t) => slaInfo(t).estado === "ruim").length;
-  const dentroSla = ativos.length - estourados;
-  const pctSla = ativos.length ? Math.round((dentroSla / ativos.length) * 100) : 100;
-  const avaliados = tickets.filter((t) => t.avaliacao);
-  const notaMedia = avaliados.length ? (avaliados.reduce((s, t) => s + t.avaliacao.nota, 0) / avaliados.length).toFixed(1) : "—";
-
+  const num = (v) => (v == null ? "—" : v);
   const tiles = [
-    { l: "Total de chamados", v: tickets.length, c: "#1498b4" },
-    { l: "Dentro do SLA", v: `${pctSla}%`, c: "#1f9d57" },
-    { l: "SLA estourado (ativos)", v: estourados, c: "#e8622a" },
-    { l: "Nota média", v: notaMedia, c: "#163a52" },
+    { l: "Cumprimento de SLA", v: st.cumprimento == null ? "—" : `${st.cumprimento}%`, c: "#1f9d57" },
+    { l: "Tempo médio 1ª resposta", v: num(st.tempos.primeira_resposta) + (st.tempos.primeira_resposta != null ? " h" : ""), c: "#1498b4" },
+    { l: "Tempo médio de resolução", v: num(st.tempos.resolucao) + (st.tempos.resolucao != null ? " h" : ""), c: "#3f7cb4" },
+    { l: "Nota média", v: num(st.satisfacao.media), c: "#163a52" },
   ];
 
   return (
     <>
-      <div className="pagehead"><div><h1>Relatórios e indicadores</h1><p>Panorama de volume, prioridades e cumprimento de SLA.</p></div></div>
+      <div className="pagehead">
+        <div><h1>Dashboard de indicadores</h1><p>Desempenho do suporte e cumprimento dos prazos (apenas administrador).</p></div>
+      </div>
+
+      <div className="chips" style={{ marginBottom: 16 }}>
+        <span style={{ alignSelf: "center", color: "#64748b", fontSize: 12.5, fontWeight: 600, marginRight: 4 }}>Período:</span>
+        {PERIODOS.map(([k, l]) => (
+          <button key={k} className={`chip ${dias === k ? "on" : ""}`} onClick={() => setDias(k)}>{l}</button>
+        ))}
+      </div>
 
       <div className="tiles">
         {tiles.map((t) => (
@@ -54,8 +74,9 @@ export default function Relatorios({ tickets }) {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
         <Barras titulo="Chamados por status" dados={porStatus} cores={COR_ST} />
+        <Barras titulo="Chamados por categoria" dados={porCat} cores={{}} />
         <Barras titulo="Chamados por prioridade" dados={porPrio} cores={COR_PRIO} />
       </div>
 
