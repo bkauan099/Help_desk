@@ -8,7 +8,7 @@ async function main() {
   const c = await pool.connect();
   try {
     await c.query("BEGIN");
-    await c.query("TRUNCATE anexos, interacoes, chamados, regras_sla, categorias, usuarios RESTART IDENTITY CASCADE");
+    await c.query("TRUNCATE kb_artigos, anexos, interacoes, chamados, regras_sla, categorias, usuarios RESTART IDENTITY CASCADE");
     const senha = await bcrypt.hash("senha123", 10);
 
     // Regras de SLA (RF04)
@@ -99,6 +99,17 @@ async function main() {
        { tipo: "sys", msg: "Status alterado para Resolvido por Rafael Souza", at: hAgo(45) },
        { tipo: "sys", msg: "Status alterado para Fechado por Rafael Souza", at: hAgo(43) }],
       { nota: 5, com: "Atendimento rápido, resolveram antes do próximo turno.", at: hAgo(43) });
+
+    // Base de conhecimento (RF10)
+    const artigos = [
+      ["Áudio/Vídeo", "Vídeo travando ou com atraso na teleconsulta", "Verifique a conexão (ideal ≥ 5 Mbps de upload), feche aplicativos que consomem banda e reabra a sala. Se persistir, reduza a resolução para 720p.", rafael],
+      ["Áudio/Vídeo", "Paciente não escuta o médico", "Confirme o microfone selecionado no navegador e a permissão de áudio. Oriente o paciente a verificar o volume e reentrar na sala.", rafael],
+      ["Acesso", "Credenciais inválidas mesmo com a senha correta", "A conta pode estar bloqueada após tentativas repetidas. Use 'Esqueci minha senha'. Persistindo, o suporte desbloqueia o usuário.", bia],
+      ["Prescrição", "Certificado digital não reconhecido", "Confirme o token/certificado A3 conectado e o driver instalado. Certificados A1 devem estar importados e válidos.", bia],
+      ["Integração", "Exames não sincronizam com o prontuário", "A sincronização ocorre a cada 15 min. Se um lote travar, informe o número do pedido para reprocessamento.", rafael],
+    ];
+    for (const [categoria, titulo, conteudo, autor] of artigos)
+      await c.query("INSERT INTO kb_artigos (categoria,titulo,conteudo,autor_id) VALUES ($1,$2,$3,$4)", [categoria, titulo, conteudo, autor]);
 
     await c.query("COMMIT");
     console.log("Seed concluído. Logins: helena.martins@hospital.br · rafael.souza@ti.hospital.br · admin@ti.hospital.br — senha: senha123");
