@@ -31,4 +31,10 @@ const mapAnexo = (r) => ({ id: r.id, name: r.nome_arquivo, size: r.tamanho, mime
 
 const mapUsuario = (r) => ({ id: r.id, nome: r.nome, email: r.email, perfil: r.perfil, cargo: r.cargo, especialidade: r.especialidade, ativo: r.ativo });
 
-module.exports = { mapChamado, mapInteracao, mapAnexo, mapUsuario };
+// RF10 — artigo da base de conhecimento
+const mapArtigo = (r) => ({ id: r.id, cat: r.categoria, titulo: r.titulo, conteudo: r.conteudo, autorNome: r.autor_nome || null, criadoEm: r.criado_em });
+
+// RF13 — regra de SLA por prioridade
+const mapRegra = (r) => ({ prioridade: r.prioridade, primeiraRespostaMin: r.primeira_resposta_min, resolucaoHoras: r.resolucao_horas });
+
+module.exports = { mapChamado, mapInteracao, mapAnexo, mapUsuario, mapArtigo, mapRegra };
