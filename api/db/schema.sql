@@ -3,6 +3,7 @@
 --  6 tabelas: Usuario, Categoria, RegraSLA, Chamado, Interacao, Anexo
 -- ============================================================
 
+DROP TABLE IF EXISTS kb_artigos  CASCADE;
 DROP TABLE IF EXISTS anexos      CASCADE;
 DROP TABLE IF EXISTS interacoes  CASCADE;
 DROP TABLE IF EXISTS chamados    CASCADE;
@@ -91,5 +92,17 @@ CREATE TABLE anexos (
   tamanho       INTEGER NOT NULL,
   criado_em     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- ---------- Artigo da base de conhecimento (RF10) ----------
+-- Atendentes publicam artigos por categoria; qualquer usuário busca por palavra-chave.
+CREATE TABLE kb_artigos (
+  id         SERIAL PRIMARY KEY,
+  categoria  TEXT NOT NULL,
+  titulo     TEXT NOT NULL,
+  conteudo   TEXT NOT NULL,
+  autor_id   INTEGER REFERENCES usuarios(id),
+  criado_em  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_kb_titulo ON kb_artigos(titulo);
 
 -- Sequência anual do protocolo é resolvida na aplicação (db/seed e rota de criação).
