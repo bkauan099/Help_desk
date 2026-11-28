@@ -7,14 +7,15 @@ import { catById } from "../data/categorias";
 import { dataHora, slaInfo } from "../lib/format";
 import { selo } from "../data/requisitos";
 
-const STATUS_OPCOES = ["Em atendimento", "Aguardando solicitante", "Resolvido", "Fechado"];
+const STATUS_OPCOES = ["Em atendimento", "Aguardando", "Resolvido", "Fechado"];
 const origem = api.base.replace(/\/api$/, "");
 
-export default function Detalhe({ t, user, ehStaff, voltar, enviarMsg, assumir, reatribuir, mudarStatus, avaliar }) {
+export default function Detalhe({ t, user, ehStaff, voltar, enviarMsg, assumir, reatribuir, mudarStatus, avaliar, reabrir }) {
   const [texto, setTexto] = useState("");
   const [erro, setErro] = useState("");
   const [nota, setNota] = useState(0);
   const [coment, setComent] = useState("");
+  const [avaliando, setAvaliando] = useState(false);
   const fim = useRef(null);
 
   useEffect(() => { fim.current?.scrollIntoView({ behavior: "smooth" }); }, [t?.interacoes?.length]);
@@ -26,6 +27,8 @@ export default function Detalhe({ t, user, ehStaff, voltar, enviarMsg, assumir, 
   const sla = slaInfo(t);
   const encerrado = t.status === "Fechado";
   const souSolic = t.solicitanteId === user.id;
+  // RF14 — solicitante reabre um "Resolvido" em até 48 h
+  const podeReabrir = souSolic && t.status === "Resolvido" && t.resolvidoEm && (Date.now() - new Date(t.resolvidoEm)) <= 48 * 3600000;
 
   async function acao(fn) { setErro(""); try { await fn(); } catch (e) { setErro(e.message); } }
   async function enviar() {
@@ -106,8 +109,9 @@ export default function Detalhe({ t, user, ehStaff, voltar, enviarMsg, assumir, 
                     <span style={{ marginLeft: 8, color: "#64748b" }}>{nota ? `${nota}/5` : ""}</span>
                   </div>
                   <textarea rows={2} style={{ marginTop: 8 }} placeholder="Comentário (opcional)" value={coment} onChange={(e) => setComent(e.target.value)} />
-                  <button className="btn orange sm" style={{ marginTop: 8 }} disabled={!nota}
-                    onClick={() => acao(() => avaliar(t.id, nota, coment.trim()))}>Enviar avaliação</button>
+                  <button className="btn orange sm" style={{ marginTop: 8 }} disabled={!nota || avaliando}
+                    onClick={() => { if (avaliando) return; setAvaliando(true); acao(() => avaliar(t.id, nota, coment.trim())).finally(() => setAvaliando(false)); }}>
+                    {avaliando ? "Enviando…" : "Enviar avaliação"}</button>
                 </div>
               )}
             </div>
@@ -125,6 +129,15 @@ export default function Detalhe({ t, user, ehStaff, voltar, enviarMsg, assumir, 
           <div className="bloco"><div className="k">Responsável</div>
             <div className="vv row-usr" style={{ marginTop: 4 }}>
               {atend ? <><Avatar u={atend} size={28} /> {atend.nome}</> : <span style={{ color: "#94a3b8" }}>não atribuído</span>}</div></div>
+
+          {podeReabrir && (
+            <div className="bloco">
+              <div className="k">Problema não resolvido?</div>
+              <div style={{ fontSize: 12, color: "#64748b", margin: "2px 0 8px" }}>Você pode reabrir este chamado em até 48 h. Depois disso, ele é fechado automaticamente.</div>
+              <button className="btn orange sm" style={{ width: "100%" }} onClick={() => acao(() => reabrir(t.id))}>
+                <Icon name="undo" size={15} /> Reabrir chamado</button>
+            </div>
+          )}
 
           {ehStaff && !encerrado && (
             <div className="bloco" style={{ display: "grid", gap: 10 }}>
