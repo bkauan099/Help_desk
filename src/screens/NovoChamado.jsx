@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "../components/Icon.jsx";
+import { api } from "../services/api";
 import { CATS } from "../data/categorias";
 import { PrioBadge } from "../components/Badge.jsx";
 import { preverPrioridade } from "../lib/sla";
@@ -15,6 +16,16 @@ export default function NovoChamado({ onCreate, voltar }) {
   const [anexos, setAnexos] = useState([]);
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [sugestoes, setSugestoes] = useState([]);   // RF11
+  const [sugAberta, setSugAberta] = useState(null);
+
+  // RF11 — busca artigos da base conforme o título digitado (com debounce).
+  useEffect(() => {
+    const termo = titulo.trim();
+    if (termo.length < 3) { setSugestoes([]); return; }
+    const id = setTimeout(() => { api.kb(termo).then((a) => setSugestoes(a.slice(0, 3))).catch(() => setSugestoes([])); }, 300);
+    return () => clearTimeout(id);
+  }, [titulo]);
 
   const cat = CATS.find((c) => c.id === catId);
   const prio = preverPrioridade(cat, impacto);
@@ -63,6 +74,23 @@ export default function NovoChamado({ onCreate, voltar }) {
         <div>
           <label htmlFor="assunto">Assunto</label>
           <input id="assunto" value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Resumo do problema" maxLength={120} />
+          {sugestoes.length > 0 && (
+            <div className="sugbox" role="region" aria-label="Artigos sugeridos">
+              <div className="sugtit"><Icon name="book" size={13} /> Antes de abrir, veja se um destes artigos já resolve:</div>
+              {sugestoes.map((a) => {
+                const on = sugAberta === a.id;
+                return (
+                  <div key={a.id} className="sugitem">
+                    <button type="button" className="sughead" aria-expanded={on} onClick={() => setSugAberta(on ? null : a.id)}>
+                      <span style={{ flex: 1, textAlign: "left" }}><strong style={{ fontSize: 13 }}>{a.titulo}</strong> <span style={{ color: "#94a3b8", fontSize: 12 }}>· {a.cat}</span></span>
+                      <Icon name="plus" size={14} />
+                    </button>
+                    {on && <div className="sugbody">{a.conteudo}</div>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div>
