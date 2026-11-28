@@ -1,28 +1,35 @@
-// RF10/RF11 — base de conhecimento (FAQ) com busca.
-// Complementar: mantida como conteúdo estático (não usa as 6 tabelas essenciais).
+// RF10/RF11 — base de conhecimento persistida no banco.
+// Atendentes/admin publicam artigos por categoria; qualquer usuário busca.
 const express = require("express");
-const { autenticar } = require("../mw/auth");
+const db = require("../db");
+const { autenticar, exigirPerfil } = require("../mw/auth");
+const { mapArtigo } = require("../util/map");
 
 const router = express.Router();
 router.use(autenticar);
 
-const ARTIGOS = [
-  { id: "k1", cat: "Áudio/Vídeo", titulo: "Vídeo travando ou com atraso na teleconsulta",
-    conteudo: "Verifique a conexão (ideal ≥ 5 Mbps de upload), feche aplicativos que consomem banda e reabra a sala. Se persistir, reduza a resolução para 720p." },
-  { id: "k2", cat: "Áudio/Vídeo", titulo: "Paciente não escuta o médico",
-    conteudo: "Confirme o microfone selecionado no navegador e a permissão de áudio. Oriente o paciente a verificar o volume e reentrar na sala." },
-  { id: "k3", cat: "Acesso", titulo: "Credenciais inválidas mesmo com a senha correta",
-    conteudo: "A conta pode estar bloqueada após tentativas repetidas. Use 'Esqueci minha senha'. Persistindo, o suporte desbloqueia o usuário." },
-  { id: "k4", cat: "Prescrição", titulo: "Certificado digital não reconhecido",
-    conteudo: "Confirme o token/certificado A3 conectado e o driver instalado. Certificados A1 devem estar importados e válidos." },
-  { id: "k5", cat: "Integração", titulo: "Exames não sincronizam com o prontuário",
-    conteudo: "A sincronização ocorre a cada 15 min. Se um lote travar, informe o número do pedido para reprocessamento." },
-];
+// RF10/RF11 — lista/busca por palavra-chave (título, conteúdo ou categoria).
+router.get("/", async (req, res) => {
+  const q = (req.query.q || "").trim();
+  const sql = `SELECT a.*, u.nome AS autor_nome
+               FROM kb_artigos a LEFT JOIN usuarios u ON u.id = a.autor_id`;
+  const { rows } = q
+    ? await db.query(`${sql} WHERE a.titulo ILIKE $1 OR a.conteudo ILIKE $1 OR a.categoria ILIKE $1 ORDER BY a.criado_em DESC`, [`%${q}%`])
+    : await db.query(`${sql} ORDER BY a.criado_em DESC`);
+  res.json(rows.map(mapArtigo));
+});
 
-router.get("/", (req, res) => {
-  const q = (req.query.q || "").toLowerCase();
-  const lista = q ? ARTIGOS.filter((a) => `${a.titulo} ${a.conteudo} ${a.cat}`.toLowerCase().includes(q)) : ARTIGOS;
-  res.json(lista);
+// RF10 — publicar artigo (apenas atendente/admin).
+router.post("/", exigirPerfil("atendente", "admin"), async (req, res) => {
+  const { categoria, titulo, conteudo } = req.body || {};
+  if (!categoria || !titulo || !conteudo)
+    return res.status(400).json({ erro: "categoria, titulo e conteudo são obrigatórios." });
+  const { rows } = await db.query(
+    "INSERT INTO kb_artigos (categoria,titulo,conteudo,autor_id) VALUES ($1,$2,$3,$4) RETURNING *",
+    [categoria.trim(), titulo.trim(), conteudo.trim(), req.user.id]);
+  const { rows: full } = await db.query(
+    "SELECT a.*, u.nome AS autor_nome FROM kb_artigos a LEFT JOIN usuarios u ON u.id=a.autor_id WHERE a.id=$1", [rows[0].id]);
+  res.status(201).json(mapArtigo(full[0]));
 });
 
 module.exports = router;
