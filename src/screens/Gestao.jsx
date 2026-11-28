@@ -14,12 +14,24 @@ export default function Gestao() {
   const [editId, setEditId] = useState(null);
   const [erro, setErro] = useState("");
   const [cat, setCat] = useState({ nome: "", critico: false, especialidade: "", icon: "tag" });
+  const [regras, setRegras] = useState([]);            // RF13
+  const [okMsg, setOkMsg] = useState("");
 
   const carregar = () => {
     api.usuarios().then(setLista).catch(() => {});
     api.categorias().then(setCats).catch(() => {});
+    api.regrasSla().then(setRegras).catch(() => {});
   };
   useEffect(carregar, []);
+
+  const editarRegra = (prio, campo, valor) => setRegras((rs) => rs.map((r) => r.prioridade === prio ? { ...r, [campo]: valor } : r));
+  async function salvarRegra(r) {
+    setErro(""); setOkMsg("");
+    try {
+      await api.salvarRegraSla(r.prioridade, { primeiraRespostaMin: Number(r.primeiraRespostaMin), resolucaoHoras: Number(r.resolucaoHoras) });
+      setOkMsg(`Prazo de SLA da prioridade ${r.prioridade} atualizado.`);
+    } catch (e) { setErro(e.message); }
+  }
 
   function editar(u) { setEditId(u.id); setForm({ ...vazio, ...u, senha: "" }); setErro(""); window.scrollTo(0, 0); }
   function limpar() { setEditId(null); setForm(vazio); setErro(""); }
@@ -47,11 +59,13 @@ export default function Gestao() {
       <div className="pagehead"><div><h1>Gestão</h1><p>Administração de usuários e categorias do sistema.</p></div></div>
 
       <div className="chips">
-        <button className={`chip ${aba === "usuarios" ? "on" : ""}`} onClick={() => setAba("usuarios")}>Usuários</button>
-        <button className={`chip ${aba === "categorias" ? "on" : ""}`} onClick={() => setAba("categorias")}>Categorias</button>
+        <button className={`chip ${aba === "usuarios" ? "on" : ""}`} onClick={() => { setAba("usuarios"); setOkMsg(""); }}>Usuários</button>
+        <button className={`chip ${aba === "categorias" ? "on" : ""}`} onClick={() => { setAba("categorias"); setOkMsg(""); }}>Categorias</button>
+        <button className={`chip ${aba === "sla" ? "on" : ""}`} onClick={() => { setAba("sla"); setErro(""); }}>Prazos de SLA</button>
       </div>
 
       {erro && <p style={{ background: "#fde7e3", color: "#b4301a", padding: "8px 11px", borderRadius: 8, fontWeight: 600, fontSize: 12.5 }} role="alert">{erro}</p>}
+      {okMsg && <p style={{ background: "#e4f6e9", color: "#1f7a46", padding: "8px 11px", borderRadius: 8, fontWeight: 600, fontSize: 12.5 }}>{okMsg}</p>}
 
       {aba === "usuarios" && (
         <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 14 }}>
@@ -123,6 +137,30 @@ export default function Gestao() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {aba === "sla" && (
+        <div className="card" style={{ maxWidth: 620 }}>
+          <div style={{ padding: "12px 14px", borderBottom: "1px solid #e7ecf1" }}>
+            <strong style={{ color: "#163a52" }}>Prazos de SLA por prioridade</strong>
+            <div style={{ fontSize: 12.5, color: "#64748b", marginTop: 2 }}>O novo prazo vale para os chamados abertos depois da alteração.</div>
+          </div>
+          <table>
+            <thead><tr><th>Prioridade</th><th>1ª resposta (min)</th><th>Resolução (horas)</th><th></th></tr></thead>
+            <tbody>
+              {regras.map((r) => (
+                <tr key={r.prioridade} style={{ cursor: "default" }}>
+                  <td><span className={`badge prio-${{ "Crítica": "crit", "Alta": "alta", "Média": "media", "Baixa": "baixa" }[r.prioridade]}`}>{r.prioridade}</span></td>
+                  <td><input type="number" min="1" style={{ width: 90 }} value={r.primeiraRespostaMin}
+                    onChange={(e) => editarRegra(r.prioridade, "primeiraRespostaMin", e.target.value)} /></td>
+                  <td><input type="number" min="1" style={{ width: 90 }} value={r.resolucaoHoras}
+                    onChange={(e) => editarRegra(r.prioridade, "resolucaoHoras", e.target.value)} /></td>
+                  <td><button className="btn sm" onClick={() => salvarRegra(r)}>Salvar</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

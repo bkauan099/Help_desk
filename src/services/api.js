@@ -37,6 +37,10 @@ export const api = {
   atribuir: (id, atendenteId) => req(`/chamados/${id}/atribuir`, { method: "POST", body: { atendenteId } }),
   mudarStatus: (id, status) => req(`/chamados/${id}/status`, { method: "PATCH", body: { status } }),
   avaliar: (id, nota, comentario) => req(`/chamados/${id}/avaliacao`, { method: "POST", body: { nota, comentario } }),
-  stats: () => req("/dashboard/stats"),
+  reabrir: (id) => req(`/chamados/${id}/reabrir`, { method: "POST" }),                 // RF14
+  publicarArtigo: (d) => req("/kb", { method: "POST", body: d }),                        // RF10
+  regrasSla: () => req("/sla"),                                                          // RF13
+  salvarRegraSla: (prioridade, d) => req(`/sla/${encodeURIComponent(prioridade)}`, { method: "PATCH", body: d }), // RF13
+  stats: (dias) => req("/dashboard/stats" + (dias ? `?dias=${dias}` : "")),              // RF12
   relatorioSla: () => req("/dashboard/relatorio-sla"),
 };
